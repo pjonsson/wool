@@ -147,11 +147,6 @@
 
 #define WOOL_STEAL_OO (WOOL_STEAL_NOLOCK && !SINGLE_FIELD_SYNC && !TWO_FIELD_SYNC)
 
-#if defined(__TILECC__)
-  MALLOC_USE_HASH(0);
-  #include <sys/alloc.h>
-#endif
-
 #define SO_STOLE 0
 #define SO_BUSY  1
 #define SO_NO_WORK 2
@@ -177,11 +172,7 @@ static Task   **bases;
 static int n_workers = 0, n_procs = 0, n_threads = 0;
 static int backoff_mode = 960; __attribute__((unused)) // No of iterations of waiting after
 static int n_stealable = -1;
-#if defined(__TILECC__)
-  static size_t worker_stack_size = 6*1024*1024;
-#else
-  static size_t worker_stack_size = 12*1024*1024;
-#endif
+static size_t worker_stack_size = 12*1024*1024;
 
 int wool_get_nworkers(void)
 {
@@ -220,20 +211,7 @@ typedef enum { AA_HERE, AA_DIST } alloc_t;
 
 static void *alloc_aligned( size_t nbytes, alloc_t  where )
 {
-  #if defined(__TILECC__)
-    alloc_attr_t attr = ALLOC_INIT;
-    int m = ALLOC_HOME_HASH;
-
-    switch( where ) {
-      case AA_HERE: m = ALLOC_HOME_TASK; break;
-      case AA_DIST: m = ALLOC_HOME_HASH; break;
-    }
-
-    alloc_set_home( &attr, m );
-    return alloc_map( &attr, nbytes );
-  #else
-    return valloc( nbytes );
-  #endif
+  return valloc( nbytes );
 }
 
 static void make_common_data( int n )
@@ -329,26 +307,13 @@ static hrtime_t gethrtime(void);
 static double ticks_per_ms;
 
 // real time as a 64 bit unsigned
-#if defined(__i386__) || defined(__x86_64__) || defined(__TILECC__)
+#if defined(__i386__) || defined(__x86_64__)
 
 static hrtime_t gethrtime()
 {
   unsigned int hi,lo;
   unsigned long long t;
-
-#if defined(__i386__) || defined(__x86_64__)
-
   asm volatile("rdtsc" : "=a"(lo), "=d"(hi));
-
-#elif defined(__TILECC__)
-
-  do {
-    hi = __insn_mfspr( 0x4e06 );
-    lo = __insn_mfspr( 0x4e07 );
-  } while( /* lo < 700000 && */ hi != __insn_mfspr( 0x4e06 ) );
-
-#endif
-
   t = hi;
   t <<= 32;
   t  += lo;
@@ -466,8 +431,6 @@ static hrtime_t last_span, last_time, first_time;
 
 #if defined(__i386__) || defined(__x86_64__)
 static hrtime_t overhead = 10;
-#elif defined(__TILECC__)
-static hrtime_t overhead = 40;
 #else
 static hrtime_t overhead = 90;
 #endif

@@ -41,13 +41,6 @@
   #define WOOL_STAT 0
 #endif
 
-// Temporary fix!
-#if !defined(__sparc__) && !defined(__i386__) && !defined(__x86_64__) && !defined(__ia64__)
-  #if !defined(__TILECC__)
-    #define __TILECC__ 1
-  #endif
-#endif
-
 #include <pthread.h>
 #include <stdio.h>
 
@@ -66,19 +59,6 @@
 
 #ifndef WOOL_PUB_OUTLINE
   #define WOOL_PUB_OUTLINE 1
-#endif
-
-#if defined(__TILECC__)
-
-  #include <atomic.h>
-  #include <tmc/mem.h>
-
-  /* Now turn off features that do not work with the tile64 */
-  #define SINGLE_FIELD_SYNC 0
-  #ifndef TWO_FIELD_SYNC
-    #define TWO_FIELD_SYNC (!THE_SYNC)
-  #endif
-
 #endif
 
 #if defined(__ia64__) && defined(__INTEL_COMPILER)
@@ -283,22 +263,13 @@ typedef volatile unsigned long exarg_t;
 #define TILE_INLINE __attribute__((__always_inline__))
 
 #if !defined(_WOOL_ordered_stores)
-  #if defined(__TILECC__)
-    #define _WOOL_ordered_stores 0
-  #else
-    #define _WOOL_ordered_stores 1
-  #endif
+  #define _WOOL_ordered_stores 1
 #endif
 
 #if defined(__sparc__)
   #define SFENCE        asm volatile( "membar #StoreStore" )
   #define MFENCE        asm volatile( "membar #StoreLoad|#StoreStore" )
   #define PREFETCH(a)   asm ( "prefetch %0, 2" : : "m"(a) )
-#elif defined(__TILECC__)
-  #define PREFETCH(a)   /*  */
-  #define SFENCE        tmc_mem_fence()
-  #define MFENCE        tmc_mem_fence()
-  #define EXCHANGE(R,M) (R = (typeof(R)) atomic_exchange_acq((int*) &(M), (int) R))
 #elif defined(__i386__)
   #define SFENCE        asm volatile( "sfence" )
   #define MFENCE        asm volatile( "mfence" )
@@ -326,15 +297,6 @@ typedef volatile unsigned long exarg_t;
   #define STORE_INT_REL(var,val) __st4_rel(&(var),(int) (val))
   #define READ_PTR_ACQ(var,ty) ((ty) __ld8_acq( &(var) ))
   #define READ_INT_ACQ(var,ty) ((ty) __ld4_acq( &(var) ))
-#elif defined(__TILECC__)
-  #define COMPILER_FENCE  /* __memory_barrier() */
-  #define STORE_PTR_REL(var,val) (SFENCE, (var) = (val))
-  #define STORE_INT_REL(var,val) (SFENCE, (var) = (val))
-  // The code below works if there is a dependence (including
-  // control dependence) from this read to any read of a value
-  // that was protected by the value read here.
-  #define READ_PTR_ACQ(var,ty) (var)
-  #define READ_INT_ACQ(var,ty) (var)
 #else
   #define COMPILER_FENCE  asm volatile( "" )
   // x86, amd64 and SPARC v9 can do without a store barrier
@@ -745,12 +707,7 @@ static const int _WOOL_(in_task) = 0;
 static inline TILE_INLINE _wool_task_header_t
 cas_state( _wool_task_header_t *mem, _wool_task_header_t old, _wool_task_header_t new_val )
 {
-  #if defined(__TILECC__)
-     return
-       (_wool_task_header_t)
-         atomic_compare_and_exchange_val_acq(
-              (int*) mem, (int) new_val, (int) old );
-  #elif defined(__GNUC__) && !defined(__INTEL_COMPILER)
+  #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
     return __sync_val_compare_and_swap( mem, old, new_val );
   #elif defined(__INTEL_COMPILER) && defined(__x86_64__)
     CAS( new_val, *mem, old );
@@ -836,36 +793,25 @@ void work_for( workfun_t, void * );
 
 static inline _wool_task_header_t _WOOL_(exch_busy)( volatile _wool_task_header_t *a )
 {
-  #if defined(__TILECC__)
-    return (_wool_task_header_t) __insn_tns((volatile int *) a);
-  #else
-    _wool_task_header_t s =
-     #if SINGLE_FIELD_SYNC
-       SFS_EMPTY;
-     #else
-       T_BUSY;
-     #endif
-    EXCHANGE( s, *(a) );
-    return s;
-  #endif
+  _wool_task_header_t s =
+   #if SINGLE_FIELD_SYNC
+     SFS_EMPTY;
+   #else
+     T_BUSY;
+   #endif
+  EXCHANGE( s, *(a) );
+  return s;
 }
 
 static inline balarm_t _WOOL_(exch_busy_balarm)( volatile balarm_t *a )
 {
-  #if defined(__TILECC__)
-    return (balarm_t) __insn_tns((volatile int *) a);
-  #else
-    balarm_t s = TF_OCC;
-    EXCHANGE( s, *(a) );
-    return s;
-  #endif
+  balarm_t s = TF_OCC;
+  EXCHANGE( s, *(a) );
+  return s;
 }
 
 static inline void _wool_unbundled_mf(void)
 {
-  #if defined(__TILECC__)
-    __insn_mf();
-  #endif
   /* Maybe do something for ia64? */
 }
 
