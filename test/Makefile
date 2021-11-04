@@ -6,8 +6,10 @@
 TOP = ..
 include $(TOP)/Makefile.inc
 
+check_LDLIBS := `pkg-config --libs check`
+
 CFLAGS += -I$(TOP)/src -I$(TOP)/examples -Icheckfiles
-LDLIBS += -lwool -lcheck $(threadsflag) -lm -lrt
+LDLIBS += -lwool $(check_LDLIBS) $(threadsflag) -lm -lrt
 LDFLAGS += -L$(TOP)/src
 
 TARGETS = generated/wool-core
