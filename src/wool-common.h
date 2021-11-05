@@ -50,19 +50,11 @@
 #define _WOOL_MAX_ARITY 10
 
 #ifndef THE_SYNC
-  #if defined(__ia64__) && ! defined(__INTEL_COMPILER)
-    #define THE_SYNC 1
-  #else
-    #define THE_SYNC 0
-  #endif
+  #define THE_SYNC 0
 #endif
 
 #ifndef WOOL_PUB_OUTLINE
   #define WOOL_PUB_OUTLINE 1
-#endif
-
-#if defined(__ia64__) && defined(__INTEL_COMPILER)
-  #include <ia64intrin.h>
 #endif
 
 #ifndef THREAD_GARAGE
@@ -184,11 +176,7 @@
 #endif
 
 #ifndef LINE_SIZE
-  #if defined(__ia64__)
-    #define LINE_SIZE 128 /* Good for SGI Altix; who else uses Itanic? */
-  #else
-    #define LINE_SIZE 64  /* A common value for current processors */
-  #endif
+  #define LINE_SIZE 64  /* A common value for current processors */
 #endif
 
 // The logical feature is WOOL_THREAD_LOCAL which is 1 if the compiler
@@ -283,29 +271,15 @@ typedef volatile unsigned long exarg_t;
   #define EXCHANGE(R,M) asm volatile ( "xchg   %1, %0" : "+m" (M), "+r" (R) )
   #define CAS(R,M,V)  asm volatile ( "lock cmpxchg %2, %1" \
                                      : "+a" (V), "+m"(M) : "r" (R) : "cc" )
-#elif defined(__ia64__)
-  #define SFENCE       /* */
-  #define MFENCE        __sync_synchronize()
-  #define PREFETCH(a)   /* */
-  #define EXCHANGE(R,M) \
-     ((R) = (typeof(R)) _InterlockedExchangeU64((exarg_t *) &(M), (exarg_t) R ))
 #endif
 
-#if defined(__ia64__) && defined(__INTEL_COMPILER)
-  #define COMPILER_FENCE  __memory_barrier()
-  #define STORE_PTR_REL(var,val) __st8_rel(&(var), (__int64) (val))
-  #define STORE_INT_REL(var,val) __st4_rel(&(var),(int) (val))
-  #define READ_PTR_ACQ(var,ty) ((ty) __ld8_acq( &(var) ))
-  #define READ_INT_ACQ(var,ty) ((ty) __ld4_acq( &(var) ))
-#else
-  #define COMPILER_FENCE  asm volatile( "" )
-  // x86, amd64 and SPARC v9 can do without a store barrier
-  #define STORE_PTR_REL(var,val) {COMPILER_FENCE; ((var) = (val));}
-  #define STORE_INT_REL(var,val) {COMPILER_FENCE; ((var) = (val));}
-  // Depends on when reads are reordered with reads
-  #define READ_PTR_ACQ(var,ty) (var)
-  #define READ_INT_ACQ(var,ty) (var)
-#endif
+#define COMPILER_FENCE  asm volatile( "" )
+// x86, amd64 and SPARC v9 can do without a store barrier
+#define STORE_PTR_REL(var,val) {COMPILER_FENCE; ((var) = (val));}
+#define STORE_INT_REL(var,val) {COMPILER_FENCE; ((var) = (val));}
+// Depends on when reads are reordered with reads
+#define READ_PTR_ACQ(var,ty) (var)
+#define READ_INT_ACQ(var,ty) (var)
 
 #define STORE_WRAPPER_REL(var,val)  STORE_PTR_REL( (var), (val) )
 #define READ_WRAPPER_ACQ(var)       READ_PTR_ACQ( (var), _wool_task_header_t )
@@ -812,7 +786,6 @@ static inline balarm_t _WOOL_(exch_busy_balarm)( volatile balarm_t *a )
 
 static inline void _wool_unbundled_mf(void)
 {
-  /* Maybe do something for ia64? */
 }
 
 static inline grab_res_t _WOOL_(owner_grab)( volatile Task *t )
