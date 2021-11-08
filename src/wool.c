@@ -42,6 +42,7 @@
 
 #include <sys/time.h>
 #include <signal.h>
+#include <errno.h>
 #include <sys/types.h>
 
 #define ST_OLD     1
@@ -2196,6 +2197,9 @@ static int affinity_mode = 0;
 static int chip_major[] = {0, 2, 4, 6, 1, 3, 5, 7};
 static int chip_minor[] = {0, 1, 2, 3, 4, 5, 6, 7};
 
+static pthread_mutex_t error_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int accept_affinity_fail = 0;
+
 static void set_worker_affinity( int w_idx )
 {
   int desired_core = -1;
@@ -2222,7 +2226,13 @@ static void set_worker_affinity( int w_idx )
 
     CPU_ZERO( &set );
     CPU_SET( desired_core, &set );
-    if( desired_core >= 0 ) sched_setaffinity( 0, size, &set );
+    if( desired_core >= 0 ) {
+      if( sched_setaffinity( 0, size, &set ) && !accept_affinity_fail ) {
+        pthread_mutex_lock( &error_mutex );
+        fprintf( stderr, "sched_setaffinity() failed with error: %s\n", strerror( errno ) );
+        exit( EXIT_FAILURE );
+      }
+    }
   }
 
 }
@@ -3666,12 +3676,15 @@ int wool_init_options( int argc, char **argv )
   while( 1 ) {
     int c;
 
-    c = getopt( argc, argv, "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:L:R:" );
+    c = getopt( argc, argv, "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:P:q:r:s:t:u:v:w:x:y:z:L:R:" );
 
     if( c == -1 || c == '?' ) break;
 
     switch( c ) {
       case 'p': n_procs = atoi( optarg );
+                break;
+      case 'P': n_procs = atoi( optarg );
+                accept_affinity_fail = 1;
                 break;
       case 's': n_stealable = atoi( optarg );
                 break;
