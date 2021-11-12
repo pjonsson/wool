@@ -77,7 +77,6 @@ LOOP_BODY_5( mm, LARGE_BODY, int, ii, int, rows, int, bs, double*, a, double*, b
 
 TASK_2(int, main, int, argc, char**, argv) {
   int i,j,ok;
-  double *a,*b,*c;
   int rows, bs, reps;
 
   /* Decode arguments */
@@ -98,9 +97,9 @@ TASK_2(int, main, int, argc, char**, argv) {
 
   /* Allocate and initialize matrices */
 
-  a = (double *) malloc(rows*rows*sizeof(double));
-  b = (double *) malloc(rows*rows*sizeof(double));
-  c = (double *) malloc(rows*rows*sizeof(double));
+  double *a = malloc(rows*rows*sizeof(double));
+  double *b = malloc(rows*rows*sizeof(double));
+  double *c = malloc(rows*rows*sizeof(double));
 
   for( i=0; i<rows; i++ ) {
     for( j=0; j<rows; j++ ) {

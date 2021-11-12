@@ -44,7 +44,7 @@ VOID_TASK_2( fanout, int, leaf_size, long int *, res )
 
 static int work( int leaf_size, int width )
 {
-  long int *arr = (long int *) malloc( sizeof(long int) * width );
+  long int *arr = malloc( sizeof(long int) * width );
   int i;
   long int sum = 0;
   

@@ -71,7 +71,7 @@ TASK_2( int, main, int, argc, char **, argv )
   stride = atoi( argv[3] );
   m  = atoi( argv[4] );
 
-  buf = (char *) malloc( np * sizeof( char ) );
+  buf = malloc( np * sizeof( char ) );
 
   for( i=0; i<m; i++) {
     sum += CALL( tree, d, 0 );

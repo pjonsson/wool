@@ -53,7 +53,6 @@ LOOP_BODY_4( mm, LARGE_BODY/1, int, i, int, rows, double*, a, double*, b, double
 
 TASK_2(int, main, int, argc, char**, argv) {
   int i,j,ok;
-  double *a,*b,*c;
   int rows;
   int reps;
 
@@ -69,9 +68,9 @@ TASK_2(int, main, int, argc, char**, argv) {
 
   /* Allocate and initialize matrices */
 
-  a = (double *) malloc(rows*rows*sizeof(double));
-  b = (double *) malloc(rows*rows*sizeof(double));
-  c = (double *) malloc(rows*rows*sizeof(double));
+  double *a = malloc(rows*rows*sizeof(double));
+  double *b = malloc(rows*rows*sizeof(double));
+  double *c = malloc(rows*rows*sizeof(double));
 
   for( i=0; i<rows; i++ ) {
     for( j=0; j<rows; j++ ) {

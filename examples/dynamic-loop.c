@@ -65,7 +65,6 @@ LOOP_BODY_1( tloop, LARGE_BODY, int, i, int*, delays )
 TASK_2( int, main, int, argc, char **, argv )
 {
   int n = 100, r = 1000;
-  int* delays;
   char* model;
 
   if( argc < 4 ) {
@@ -77,7 +76,7 @@ TASK_2( int, main, int, argc, char **, argv )
   r = atoi( argv[2] );
   n = atoi( argv[3] );
 
-  delays = (int*) malloc( n * sizeof(int) );
+  int *delays = malloc( n * sizeof(int) );
 
   if( !strcmp( model, "flute" ) ) {
     flute( argc-5, argv+5, n, delays );
