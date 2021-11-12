@@ -47,7 +47,6 @@
 
 #define ST_OLD     1
 #define ST_THIEF   2
-#define ST_SAMPLED 4
 
 #ifndef AVOID_RANDOM
   #define AVOID_RANDOM 0
@@ -64,10 +63,6 @@
 
 #define dprint(s, ...) (fprintf( stderr, s, ##__VA_ARGS__))
 
-#ifndef MIGRATE_WORKERS
-  #define MIGRATE_WORKERS 1
-#endif
-
 #ifndef WOOL_TIME
   #define WOOL_TIME 0
 #endif
@@ -78,10 +73,6 @@
 
 #ifndef WOOL_STEAL_NOLOCK
   #define WOOL_STEAL_NOLOCK (! THE_SYNC )
-#endif
-
-#ifndef WOOL_STEAL_SKIP
-  #define WOOL_STEAL_SKIP 0
 #endif
 
 #ifndef STEAL_TRYLOCK
@@ -137,10 +128,6 @@
 #endif
 
 #define WOOL_STEAL_SET (WOOL_STEAL_NEW_SET || WOOL_STEAL_OLD_SET)
-
-#ifndef EXACT_STEAL_OUTCOME
-  #define EXACT_STEAL_OUTCOME 0
-#endif
 
 #ifndef STEAL_PEEK
   #define STEAL_PEEK 1
