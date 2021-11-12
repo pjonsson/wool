@@ -3581,13 +3581,7 @@ static void rts_init_start( int start_ws )
   make_common_data( n_workers );
 
   #if WOOL_INIT_SPIN
-  {
-    int i;
-    init_barrier = malloc( n_procs * sizeof(int) );
-    for( i = 0; i < n_procs; i++ ) {
-      init_barrier[i] = 0;
-    }
-  }
+  init_barrier = calloc( n_procs, sizeof(int) );
   #endif
 
   pthread_attr_init( &worker_attr );
