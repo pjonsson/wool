@@ -46,8 +46,8 @@
 
 #include <assert.h>
 
-#define _WOOL_(V) _wool_##V
-#define _WOOL_MAX_ARITY 10
+#define WOOL_(V) _wool_##V
+#define WOOL_MAX_ARITY 10
 
 #ifndef THE_SYNC
   #define THE_SYNC 0
@@ -62,7 +62,7 @@
 #endif
 
 #ifndef WOOL_INLINED_BOT_DEC
-  #define WOOL_INLINED_BOT_DEC (! _WOOL_ordered_stores)
+  #define WOOL_INLINED_BOT_DEC (! WOOL_ordered_stores)
 #endif
 
 #ifndef WOOL_FIXED_STEAL
@@ -210,16 +210,16 @@
 #endif
 
 #if defined(__GNUC__) && __GNUC__ >= 2
-#define _WOOL_ALIGNOF(type) __alignof__(type)
+#define WOOL_ALIGNOF(type) __alignof__(type)
 #else
-#define _WOOL_ALIGNOF(type) offsetof (struct { char c; type member; }, member)
+#define WOOL_ALIGNOF(type) offsetof (struct { char c; type member; }, member)
 #endif
 
 
 #if WOOL_JOIN_STACK
-#define _WOOL_pool_blocks 128
+#define WOOL_pool_blocks 128
 #else
-#define _WOOL_pool_blocks 8
+#define WOOL_pool_blocks 8
 #endif
 
 #define SMALL_BODY             2
@@ -233,11 +233,11 @@
 
 #define PAD(x,b) ( ( (b) - ((x)%(b)) ) & ((b)-1) ) /* b must be power of 2 */
 #define ROUND(x,b) ( (x) + PAD( (x), (b) ) )
-#define _WOOL_ALIGNTO(n, t) ((n + _WOOL_ALIGNOF(t) - 1) & ~( _WOOL_ALIGNOF(t) - 1 ))  /* Alignment must be a power of 2 */
-#define _WOOL_OFFSET_AFTER(n, t) (_WOOL_ALIGNTO(n, t) + sizeof(t))
+#define WOOL_ALIGNTO(n, t) ((n + WOOL_ALIGNOF(t) - 1) & ~( WOOL_ALIGNOF(t) - 1 ))  /* Alignment must be a power of 2 */
+#define WOOL_OFFSET_AFTER(n, t) (WOOL_ALIGNTO(n, t) + sizeof(t))
 
 #ifndef TASK_PAYLOAD
-  #define TASK_PAYLOAD (_WOOL_MAX_ARITY*8)
+  #define TASK_PAYLOAD (WOOL_MAX_ARITY*8)
 #endif
 
 unsigned block_size(int);
@@ -250,8 +250,8 @@ typedef volatile unsigned long exarg_t;
 
 #define TILE_INLINE __attribute__((__always_inline__))
 
-#if !defined(_WOOL_ordered_stores)
-  #define _WOOL_ordered_stores 1
+#if !defined(WOOL_ordered_stores)
+  #define WOOL_ordered_stores 1
 #endif
 
 #if defined(__sparc__)
@@ -449,19 +449,19 @@ typedef struct _Task {
   char p2[ PAD( ROUND( COMMON_FIELD_SIZE, P_SZ ) + TASK_PAYLOAD, LINE_SIZE ) ];
 } Task;
 
-struct _WOOL_(_StolenTask);
+struct WOOL_(_StolenTask);
 
 typedef struct {
 #if WOOL_JOIN_STACK
-  struct _WOOL_(_StolenTask) *next;
+  struct WOOL_(_StolenTask) *next;
   int size;
 #endif
-} _WOOL_(StolenTaskInfo);
+} WOOL_(StolenTaskInfo);
 
-typedef struct _WOOL_(_StolenTask) {
+typedef struct WOOL_(_StolenTask) {
   TASK_COMMON_FIELDS( struct _Task * )
-  _WOOL_(StolenTaskInfo) info;
-} _WOOL_(StolenTask);
+  WOOL_(StolenTaskInfo) info;
+} WOOL_(StolenTask);
 
 #if SINGLE_FIELD_SYNC
   typedef _wool_task_header_t grab_res_t;
@@ -549,15 +549,15 @@ struct _Worker_private {
   Task             *wait_for;
   // The following fields maintain the blocked task pool, update on block shift
   Task             *join_first_private;   // Low boundary for underflow and signal check
-#if _WOOL_ordered_stores
+#if WOOL_ordered_stores
   Task             *spawn_high;  // High boundary for overflow and signal check
 #else
   Task             *spawn_first_private; // Used in a fast check for spawns
 #endif
 #if WOOL_JOIN_STACK
   Task             *join_stack_base;
-  _WOOL_(StolenTask) *join_stack_top;
-  _WOOL_(StolenTask) *join_stack_free;
+  WOOL_(StolenTask) *join_stack_top;
+  WOOL_(StolenTask) *join_stack_free;
   unsigned long     join_stack_top_idx; // The join stack index of the first task logically outside the join stack
   unsigned long     pool_base_idx; // The pool index of the oldest task in the pool
 #endif
@@ -567,7 +567,7 @@ struct _Worker_private {
   Task             *pr_top;             // A copy of the top pointer, used for forests
   Task             *dq_base;            // Always pointing the base of the dequeue
   Task             *curr_block_base;
-  Task             *block_base[_WOOL_pool_blocks];
+  Task             *block_base[WOOL_pool_blocks];
   // Externally managed storage area for "Wool-plugins". Initialized to
   // NULL by init_worker().
   void             *storage;
@@ -600,7 +600,7 @@ struct _Worker_public {
   volatile unsigned long  dq_bot;      // The next task to steal
   volatile unsigned long  ssn;         // Sequence number, incremented when bot is decreased
   volatile unsigned long  pu_n_public; // Number of public task descriptors in pool, == n_public
-           Task          *pu_block_base[_WOOL_pool_blocks]; // Public copy of the block pointers
+           Task          *pu_block_base[WOOL_pool_blocks]; // Public copy of the block pointers
 #if WOOL_JOIN_STACK
   volatile unsigned long long pool_base_idx; // Thieves use this one
 #endif
@@ -676,7 +676,7 @@ static void _wool_mspan_after_inline( hrtime_t e_span, Task *t )
 __attribute__((unused))
 static const Worker *__self = NULL;
 __attribute__((unused))
-static const int _WOOL_(in_task) = 0;
+static const int WOOL_(in_task) = 0;
 
 static inline TILE_INLINE _wool_task_header_t
 cas_state( _wool_task_header_t *mem, _wool_task_header_t old, _wool_task_header_t new_val )
@@ -698,10 +698,10 @@ extern "C" {
 
 
 #if THE_SYNC
-  balarm_t _WOOL_(sync_get_balarm)( Task * );
+  balarm_t WOOL_(sync_get_balarm)( Task * );
 #endif
 
-static inline void* _WOOL_(getspecific)( _wool_thread_local_t key )
+static inline void* WOOL_(getspecific)( _wool_thread_local_t key )
 {
 #if WOOL_THREAD_LOCAL
   return key;
@@ -710,7 +710,7 @@ static inline void* _WOOL_(getspecific)( _wool_thread_local_t key )
 #endif
 }
 
-static inline void _WOOL_(setspecific)( _wool_thread_local_t* key, void *val )
+static inline void WOOL_(setspecific)( _wool_thread_local_t* key, void *val )
 {
 #if WOOL_THREAD_LOCAL
   *key = val;
@@ -719,7 +719,7 @@ static inline void _WOOL_(setspecific)( _wool_thread_local_t* key, void *val )
 #endif
 }
 
-static inline _wool_thread_local_t _WOOL_(key_create)(void)
+static inline _wool_thread_local_t WOOL_(key_create)(void)
 {
 #if WOOL_THREAD_LOCAL
   return NULL;
@@ -732,18 +732,18 @@ static inline _wool_thread_local_t _WOOL_(key_create)(void)
 #endif
 }
 
-typedef _wool_thread_local_t _WOOL_(key_t);
+typedef _wool_thread_local_t WOOL_(key_t);
 
-extern _wool_thread_local _WOOL_(key_t) tls_self;
+extern _wool_thread_local WOOL_(key_t) tls_self;
 
-static inline Worker *_WOOL_(slow_get_self)( void )
+static inline Worker *WOOL_(slow_get_self)( void )
 {
-  return (Worker *) _WOOL_(getspecific)( tls_self );
+  return (Worker *) WOOL_(getspecific)( tls_self );
 }
 
-Task *_WOOL_(slow_spawn)( Worker *, Task *, _wool_task_header_t );
-Task *_WOOL_(slow_sync)( Worker *, Task *, grab_res_t );
-Worker *_WOOL_(slow_get_self)( void );
+Task *WOOL_(slow_spawn)( Worker *, Task *, _wool_task_header_t );
+Task *WOOL_(slow_sync)( Worker *, Task *, grab_res_t );
+Worker *WOOL_(slow_get_self)( void );
 
 int  wool_init( int, char ** );
 int  wool_init_options( int, char ** );
@@ -765,7 +765,7 @@ void work_for( workfun_t, void * );
 
 #define __wool_pop_task( w ) 0
 
-static inline _wool_task_header_t _WOOL_(exch_busy)( volatile _wool_task_header_t *a )
+static inline _wool_task_header_t WOOL_(exch_busy)( volatile _wool_task_header_t *a )
 {
   _wool_task_header_t s =
    #if SINGLE_FIELD_SYNC
@@ -777,7 +777,7 @@ static inline _wool_task_header_t _WOOL_(exch_busy)( volatile _wool_task_header_
   return s;
 }
 
-static inline balarm_t _WOOL_(exch_busy_balarm)( volatile balarm_t *a )
+static inline balarm_t WOOL_(exch_busy_balarm)( volatile balarm_t *a )
 {
   balarm_t s = TF_OCC;
   EXCHANGE( s, *(a) );
@@ -788,7 +788,7 @@ static inline void _wool_unbundled_mf(void)
 {
 }
 
-static inline grab_res_t _WOOL_(owner_grab)( volatile Task *t )
+static inline grab_res_t WOOL_(owner_grab)( volatile Task *t )
 {
 #if THE_SYNC
   balarm_t a;
@@ -806,11 +806,11 @@ static inline grab_res_t _WOOL_(owner_grab)( volatile Task *t )
   }
 #elif SINGLE_FIELD_SYNC
 
-  return _WOOL_(exch_busy)( (volatile _wool_task_header_t *) &(t->hdr) );
+  return WOOL_(exch_busy)( (volatile _wool_task_header_t *) &(t->hdr) );
 
 #elif TWO_FIELD_SYNC
 
-  return _WOOL_(exch_busy_balarm)( (volatile grab_res_t *) &(t->balarm) );
+  return WOOL_(exch_busy_balarm)( (volatile grab_res_t *) &(t->balarm) );
 
 #else
   _wool_task_header_t f = T_BUSY;
@@ -818,7 +818,7 @@ static inline grab_res_t _WOOL_(owner_grab)( volatile Task *t )
   if( WOOL_READ_STOLEN && t->hdr <= T_LAST ) {
     return STOLEN_BUSY;
   }
-  f = _WOOL_(exch_busy)( (volatile _wool_task_header_t *) &(t->hdr) );
+  f = WOOL_(exch_busy)( (volatile _wool_task_header_t *) &(t->hdr) );
   COMPILER_FENCE;
   if( f > T_LAST ) { // Needs to change!
     return NOT_STOLEN;
@@ -850,14 +850,14 @@ static inline grab_res_t _WOOL_(owner_grab)( volatile Task *t )
 extern unsigned long ptr2idx_curr( Worker *, Task * );
 
 static inline __attribute__((__always_inline__))
-void _WOOL_(fast_spawn)( Worker *self, Task *cached_top, _wool_task_header_t f )
+void WOOL_(fast_spawn)( Worker *self, Task *cached_top, _wool_task_header_t f )
 {
 
   #if WOOL_MEASURE_SPAN
     cached_top->spawn_span = __wool_update_time();
   #endif
 
-  #if !defined(NDEBUG) && !_WOOL_ordered_stores
+  #if !defined(NDEBUG) && !WOOL_ordered_stores
     if( !IN_CURRENT( self, cached_top ) ) {
       fprintf( stderr, "SP %d %lu %ld %ld %lu\n",
                        self->idx,
@@ -891,7 +891,7 @@ void _WOOL_(fast_spawn)( Worker *self, Task *cached_top, _wool_task_header_t f )
   #endif
 
 
-  #if _WOOL_ordered_stores
+  #if WOOL_ordered_stores
     /* We make no distinction between public and private spawn since no
        additional fences are needed for the public case */
     if( cached_top < self->pr.spawn_high ) {
@@ -904,7 +904,7 @@ void _WOOL_(fast_spawn)( Worker *self, Task *cached_top, _wool_task_header_t f )
       cached_top ++;
     } else {
       /* Slow case */
-      cached_top = _WOOL_(slow_spawn)( self, cached_top, f );
+      cached_top = WOOL_(slow_spawn)( self, cached_top, f );
     }
   #else
     /* We now make a distinction since the public case need extra memory synchronization */
@@ -943,7 +943,7 @@ void _WOOL_(fast_spawn)( Worker *self, Task *cached_top, _wool_task_header_t f )
       cached_top->hdr = SFS_EMPTY;
     } else {
       /* Slow case */
-      cached_top = _WOOL_(slow_spawn)( self, cached_top, f );
+      cached_top = WOOL_(slow_spawn)( self, cached_top, f );
     }
   #endif
   self->pr.pr_top = cached_top;
@@ -972,15 +972,15 @@ void _wool_when_sync_on_public( Worker *self )
 #endif
 
 static inline __attribute__((__always_inline__))
-grab_res_t _WOOL_(grab_in_sync)( Worker *self, Task *top )
+grab_res_t WOOL_(grab_in_sync)( Worker *self, Task *top )
 {
   #if TWO_FIELD_SYNC
-    balarm_t res = _WOOL_(exch_busy_balarm)( &(top->balarm) );
+    balarm_t res = WOOL_(exch_busy_balarm)( &(top->balarm) );
 
     // fprintf( stderr, "?\n" );
 
-    _WOOL_(when_sync_on_public)( self );
-    #if _WOOL_ordered_stores
+    WOOL_(when_sync_on_public)( self );
+    #if WOOL_ordered_stores
       if( res != TF_OCC ) {
         top->hdr = SFS_EMPTY;
         COMPILER_FENCE;
@@ -996,19 +996,19 @@ grab_res_t _WOOL_(grab_in_sync)( Worker *self, Task *top )
 }
 
 static inline __attribute__((always_inline))
-unsigned long _WOOL_(max)( unsigned long a, unsigned long b )
+unsigned long WOOL_(max)( unsigned long a, unsigned long b )
 {
   return b<a ? b : a;
 }
 
 static inline __attribute__((always_inline))
-Worker* _WOOL_(get_self)( Worker* self, int in_task )
+Worker* WOOL_(get_self)( Worker* self, int in_task )
 {
-  return in_task ? self : _WOOL_(slow_get_self)();
+  return in_task ? self : WOOL_(slow_get_self)();
 }
 
 static inline __attribute__((always_inline))
-char* _WOOL_(arg_ptr)( Task* t, size_t alignment )
+char* WOOL_(arg_ptr)( Task* t, size_t alignment )
 {
   const size_t sizeplusalign = sizeof( __wool_task_common ) + alignment - 1;
   return ((char *) t) + sizeplusalign - sizeplusalign % alignment;
@@ -1018,18 +1018,18 @@ char* _WOOL_(arg_ptr)( Task* t, size_t alignment )
 
 #if WOOL_JOIN_STACK
 
-extern Task *_WOOL_(dummy_task_ptr);
+extern Task *WOOL_(dummy_task_ptr);
 
 // Called from the wrapper function before evaluating the stolen task to allow the task to move to the join stack.
 static inline __attribute__((always_inline))
-void _WOOL_(save_link)( Task **task_pp )
+void WOOL_(save_link)( Task **task_pp )
 {
   Task *p = *task_pp;
   p->join_data.back_link = task_pp;
 }
 
 static inline __attribute__((always_inline))
-void _WOOL_(join_lock_lock)( volatile int *lock )
+void WOOL_(join_lock_lock)( volatile int *lock )
 {
   int lock_var = 1;
   long w = 0;
@@ -1040,7 +1040,7 @@ void _WOOL_(join_lock_lock)( volatile int *lock )
 }
 
 static inline __attribute__((always_inline))
-void _WOOL_(join_lock_unlock)( volatile int *lock )
+void WOOL_(join_lock_unlock)( volatile int *lock )
 {
   STORE_INT_REL( *lock, 0 );
 }
@@ -1048,47 +1048,47 @@ void _WOOL_(join_lock_unlock)( volatile int *lock )
 // Called from the wrapper function after evaluating the task to get pointer to task for evaluation
 // as well as from the scavenging code.
 static inline __attribute__((always_inline))
-Task* _WOOL_(swap_link)( Task *volatile *link, Task* old_link )
+Task* WOOL_(swap_link)( Task *volatile *link, Task* old_link )
 {
   Task *new_link;
-  _WOOL_(join_lock_lock)( &(old_link->join_lock) );
+  WOOL_(join_lock_lock)( &(old_link->join_lock) );
   new_link = *link; // Must be protected by lock
   if( new_link == old_link ) {
     // Task has not been moved, tell victim not to move it
-    old_link->join_data.back_link = &_WOOL_(dummy_task_ptr);
+    old_link->join_data.back_link = &WOOL_(dummy_task_ptr);
   }
-  _WOOL_(join_lock_unlock)( &(old_link->join_lock) );
+  WOOL_(join_lock_unlock)( &(old_link->join_lock) );
   return new_link;
 }
 
 #else
 
 static inline __attribute__((always_inline))
-void _WOOL_(save_link)( Task **task_pp )
+void WOOL_(save_link)( Task **task_pp )
 {
 }
 
 static inline __attribute__((always_inline))
-Task* _WOOL_(swap_link)( Task *volatile *link, Task *old_link )
+Task* WOOL_(swap_link)( Task *volatile *link, Task *old_link )
 {
   return *link;
 }
 
 #endif
 
-#define WOOL_CONTEXT_CACHE  Worker *const _WOOL_(tmp_self) = __self; Worker* __self = _WOOL_(get_self)( _WOOL_(tmp_self), _WOOL_(in_task) ); const int _WOOL_(in_task) = 1;
+#define WOOL_CONTEXT_CACHE  Worker *const WOOL_(tmp_self) = __self; Worker* __self = WOOL_(get_self)( WOOL_(tmp_self), WOOL_(in_task) ); const int WOOL_(in_task) = 1;
 
 
-#define SYNC( f )        ( f##_SYNC_DSP( (Worker *) __self, _WOOL_(in_task) ) )
+#define SYNC( f )        ( f##_SYNC_DSP( (Worker *) __self, WOOL_(in_task) ) )
 #define SYNC_ALL( f, m ) { WOOL_CONTEXT_CACHE; while ( GET_MARK() != m ) { SYNC( f ); } }
-#define GET_MARK()       ( _WOOL_(get_self)((Worker*) __self, _WOOL_(in_task))->pr.pr_top )
-#define SPAWN( f, ... )  ( f##_SPAWN_DSP( (Worker *) __self, _WOOL_(in_task) ,##__VA_ARGS__ ) )
-#define CALL( f, ... )   ( f##_CALL_DSP( (Worker *) __self, _WOOL_(in_task) , ##__VA_ARGS__ ) )
+#define GET_MARK()       ( WOOL_(get_self)((Worker*) __self, WOOL_(in_task))->pr.pr_top )
+#define SPAWN( f, ... )  ( f##_SPAWN_DSP( (Worker *) __self, WOOL_(in_task) ,##__VA_ARGS__ ) )
+#define CALL( f, ... )   ( f##_CALL_DSP( (Worker *) __self, WOOL_(in_task) , ##__VA_ARGS__ ) )
 #define FOR( f, ... )    ( CALL( f##_TREE , ##__VA_ARGS__ ) )
-#define FREE_SPACE_PTR( f ) ( f##_FREE_SPACE( _WOOL_(get_self)((Worker*) __self, _WOOL_(in_task))->pr.pr_top ) )
+#define FREE_SPACE_PTR( f ) ( f##_FREE_SPACE( WOOL_(get_self)((Worker*) __self, WOOL_(in_task))->pr.pr_top ) )
 #define FREE_SPACE_SIZE( f ) ( sizeof(Task) - (size_t) f##_FREE_SPACE((Task*) 0) )
 
-#define _WOOL_OFFCON( a, t, before ) ( __alignof__(t) > a ? sizeof(t) : \
+#define WOOL_OFFCON( a, t, before ) ( __alignof__(t) > a ? sizeof(t) : \
                                        before && __alignof__(t) == a ? sizeof(t) : 0 )
 
 #endif /* not defined WOOL_COMMON_H */

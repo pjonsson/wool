@@ -58,13 +58,13 @@ if ((r)); then
   FUN_a_FORMALS="$FUN_a_FORMALS, ATYPE_$r a$r"
   CALL_a_ARGS="$CALL_a_ARGS, a$r"
   ARG_TYPES="$ARG_TYPES, ATYPE_$r"
-  ARGS_MAX_ALIGN="_WOOL_(max)( __alignof__(ATYPE_$r), $ARGS_MAX_ALIGN )"
+  ARGS_MAX_ALIGN="WOOL_(max)( __alignof__(ATYPE_$r), $ARGS_MAX_ALIGN )"
 
-  PTR_TO_CURRENT_FIELD_p="*(ATYPE_$r *)( _WOOL_(p) + _WOOL_ALIGNTO( $OFFSET_EXP, ATYPE_$r ) )"
+  PTR_TO_CURRENT_FIELD_p="*(ATYPE_$r *)( WOOL_(p) + WOOL_ALIGNTO( $OFFSET_EXP, ATYPE_$r ) )"
   TASK_a_INIT_p="$TASK_a_INIT_p  $PTR_TO_CURRENT_FIELD_p = a$r;
 "
   TASK_GET_FROM_p="$TASK_GET_FROM_p, $PTR_TO_CURRENT_FIELD_p"
-  OFFSET_EXP="_WOOL_OFFSET_AFTER( $OFFSET_EXP, ATYPE_$r )"
+  OFFSET_EXP="WOOL_OFFSET_AFTER( $OFFSET_EXP, ATYPE_$r )"
 fi
 
 
@@ -78,11 +78,11 @@ echo
 echo \
 "#define TASK_FORW_$r(RTYPE, NAME$MACRO_DECL_ARGS )
   static inline __attribute__((__always_inline__))
-    void NAME##_SPAWN_DSP( Worker *__self, int _WOOL_(fs_in_task)$ARG_TYPES);
+    void NAME##_SPAWN_DSP( Worker *__self, int WOOL_(fs_in_task)$ARG_TYPES);
   static inline __attribute__((__always_inline__))
-    RTYPE NAME##_SYNC_DSP( Worker *__self, int _WOOL_(fs_in_task) );
+    RTYPE NAME##_SYNC_DSP( Worker *__self, int WOOL_(fs_in_task) );
   static inline __attribute__((__always_inline__))
-    RTYPE NAME##_CALL_DSP( Worker *__self, int _WOOL_(fs_in_task)$ARG_TYPES);"
+    RTYPE NAME##_CALL_DSP( Worker *__self, int WOOL_(fs_in_task)$ARG_TYPES);"
 ) | awk '{printf "%-70s\\\n", $0 }'
 
 echo
@@ -91,11 +91,11 @@ echo
 echo \
 "#define VOID_TASK_FORW_$r(NAME$MACRO_DECL_ARGS )
   static inline __attribute__((__always_inline__))
-    void NAME##_SPAWN_DSP( Worker *__self, int _WOOL_(fs_in_task)$ARG_TYPES);
+    void NAME##_SPAWN_DSP( Worker *__self, int WOOL_(fs_in_task)$ARG_TYPES);
   static inline __attribute__((__always_inline__))
-    void NAME##_SYNC_DSP( Worker *__self, int _WOOL_(fs_in_task) );
+    void NAME##_SYNC_DSP( Worker *__self, int WOOL_(fs_in_task) );
   static inline __attribute__((__always_inline__))
-    void NAME##_CALL_DSP( Worker *__self, int _WOOL_(fs_in_task)$ARG_TYPES);"
+    void NAME##_CALL_DSP( Worker *__self, int WOOL_(fs_in_task)$ARG_TYPES);"
 ) | awk '{printf "%-70s\\\n", $0 }'
 
 echo
@@ -141,7 +141,7 @@ echo "$DCL_MACRO_LHS
 
 typedef struct _##NAME##_TD {
   TASK_COMMON_FIELDS( struct _##NAME##_TD * )
-  _WOOL_(StolenTaskInfo) info;
+  WOOL_(StolenTaskInfo) info;
   union {
     $RES_FIELD
   } d;
@@ -155,9 +155,9 @@ typedef struct {
 static inline __attribute__((__always_inline__))
 char* NAME##_FREE_SPACE(Task* cached_top)
 {
-  char *_WOOL_(p) = _WOOL_(arg_ptr)( cached_top, $ARGS_MAX_ALIGN );
+  char *WOOL_(p) = WOOL_(arg_ptr)( cached_top, $ARGS_MAX_ALIGN );
 
-  return _WOOL_(p) + _WOOL_ALIGNTO( $OFFSET_EXP, double );
+  return WOOL_(p) + WOOL_ALIGNTO( $OFFSET_EXP, double );
 }
 
 /** SPAWN related functions **/
@@ -170,39 +170,39 @@ static inline __attribute__((__always_inline__))
 void NAME##_SPAWN(Worker *__self $FUN_a_FORMALS)
 {
   Task* cached_top = __self->pr.pr_top;
-  char *_WOOL_(p) = _WOOL_(arg_ptr)( cached_top, $ARGS_MAX_ALIGN );
+  char *WOOL_(p) = WOOL_(arg_ptr)( cached_top, $ARGS_MAX_ALIGN );
 
 $TASK_a_INIT_p
 
   COMPILER_FENCE;
 
-  _WOOL_(fast_spawn)( __self, cached_top, (_wool_task_header_t) &NAME##_DICT );
+  WOOL_(fast_spawn)( __self, cached_top, (_wool_task_header_t) &NAME##_DICT );
 
 }
 
 static inline __attribute__((__always_inline__))
-void NAME##_SPAWN_DSP(Worker *__self, int _WOOL_(fs_in_task)$FUN_a_FORMALS)
+void NAME##_SPAWN_DSP(Worker *__self, int WOOL_(fs_in_task)$FUN_a_FORMALS)
 {
-  if( _WOOL_(fs_in_task) ) {
+  if( WOOL_(fs_in_task) ) {
     NAME##_SPAWN( __self $CALL_a_ARGS );
   } else {
-    __self = _WOOL_(slow_get_self)( );
+    __self = WOOL_(slow_get_self)( );
     NAME##_SPAWN( __self $CALL_a_ARGS );
   }
 }
 
 /** CALL related functions **/
 
-$RTYPE NAME##_CALL(Worker *_WOOL_(self) $FUN_a_FORMALS);
+$RTYPE NAME##_CALL(Worker *WOOL_(self) $FUN_a_FORMALS);
 
 static inline __attribute__((__always_inline__))
-$RTYPE NAME##_CALL_DSP( Worker *_WOOL_(self), int _WOOL_(fs_in_task)$FUN_a_FORMALS )
+$RTYPE NAME##_CALL_DSP( Worker *WOOL_(self), int WOOL_(fs_in_task)$FUN_a_FORMALS )
 {
-  if( _WOOL_(fs_in_task) ) {
-    return NAME##_CALL( _WOOL_(self) $CALL_a_ARGS );
+  if( WOOL_(fs_in_task) ) {
+    return NAME##_CALL( WOOL_(self) $CALL_a_ARGS );
   } else {
-    _WOOL_(self) = _WOOL_(slow_get_self)( );
-    return NAME##_CALL( _WOOL_(self) $CALL_a_ARGS );
+    WOOL_(self) = WOOL_(slow_get_self)( );
+    return NAME##_CALL( WOOL_(self) $CALL_a_ARGS );
   }
 }
 
@@ -229,7 +229,7 @@ $RTYPE NAME##_SYNC(Worker *__self)
 
   if( __builtin_expect( jfp < cached_top, 1 ) ) {
     Task *t = --cached_top;
-    char *_WOOL_(p) = _WOOL_(arg_ptr)( t, $ARGS_MAX_ALIGN );
+    char *WOOL_(p) = WOOL_(arg_ptr)( t, $ARGS_MAX_ALIGN );
     $RES_FIELD
 
     __self->pr.pr_top = cached_top;
@@ -250,12 +250,12 @@ $RTYPE NAME##_SYNC(Worker *__self)
 }
 
 static inline __attribute__((__always_inline__))
-$RTYPE NAME##_SYNC_DSP( Worker *__self, int _WOOL_(fs_in_task) )
+$RTYPE NAME##_SYNC_DSP( Worker *__self, int WOOL_(fs_in_task) )
 {
-  if( _WOOL_(fs_in_task) ) {
+  if( WOOL_(fs_in_task) ) {
     return NAME##_SYNC( __self );
   } else {
-    __self = _WOOL_(slow_get_self)( );
+    __self = WOOL_(slow_get_self)( );
     return NAME##_SYNC( __self );
   }
 }" \
@@ -267,7 +267,7 @@ echo ""
 (\
 echo "$IMP_MACRO_LHS
 
-$RTYPE NAME##_CALL(Worker *_WOOL_(self) $FUN_a_FORMALS);
+$RTYPE NAME##_CALL(Worker *WOOL_(self) $FUN_a_FORMALS);
 
 /** SPAWN related functions **/
 
@@ -279,11 +279,11 @@ Task* NAME##_WRAP_AUX(Worker *__self, NAME##_TD *t $FUN_a_FORMALS)
 
   t->info.size = $TASK_SIZE;
   COMPILER_FENCE;
-  _WOOL_(save_link)( (Task**) &v_t );
+  WOOL_(save_link)( (Task**) &v_t );
 
   $SAVE_TO_res NAME##_CALL( __self $CALL_a_ARGS );
 
-  post_eval_task = (NAME##_TD*) _WOOL_(swap_link)( (Task *volatile *) &v_t, (Task *) t );
+  post_eval_task = (NAME##_TD*) WOOL_(swap_link)( (Task *volatile *) &v_t, (Task *) t );
   $SAVE_FROM_res
 
   return (Task *) post_eval_task;
@@ -291,7 +291,7 @@ Task* NAME##_WRAP_AUX(Worker *__self, NAME##_TD *t $FUN_a_FORMALS)
 
 Task* NAME##_WRAP(Worker *__self, NAME##_TD *t)
 {
-  char *_WOOL_(p) = _WOOL_(arg_ptr)( (Task *) t, $ARGS_MAX_ALIGN );
+  char *WOOL_(p) = WOOL_(arg_ptr)( (Task *) t, $ARGS_MAX_ALIGN );
   return NAME##_WRAP_AUX( __self, t $TASK_GET_FROM_p );
 }
 
@@ -311,14 +311,14 @@ Task *NAME##_PUB(Worker *self, Task *top, Task *jfp )
         ( WOOL_WHEN_AS_C( us = self->pr.unstolen_stealable )
          __builtin_expect( (unsigned long) jfp - (unsigned long) top < ps, 1 ) )
          && __builtin_expect( WOOL_LS_TEST(us), 1 )
-         && (res = _WOOL_(grab_in_sync)( self, (top)-1 ),
+         && (res = WOOL_(grab_in_sync)( self, (top)-1 ),
              (
                WOOL_WHEN_AS_C( self->pr.unstolen_stealable = us-1 )
                __builtin_expect( res != TF_OCC, 1 ) ) )
    ) {
     /* Semi fast case */
     NAME##_TD *t = (NAME##_TD *) --top;
-    char *_WOOL_(p) = _WOOL_(arg_ptr)( (Task *) t, $ARGS_MAX_ALIGN );
+    char *WOOL_(p) = WOOL_(arg_ptr)( (Task *) t, $ARGS_MAX_ALIGN );
 
     self->pr.pr_top = top;
     PR_INC( self, CTR_inlined );
@@ -326,7 +326,7 @@ Task *NAME##_PUB(Worker *self, Task *top, Task *jfp )
     return top;
   } else {
       /* An exceptional case */
-      top = _WOOL_(slow_sync)( self, top, res );
+      top = WOOL_(slow_sync)( self, top, res );
       return top;
   }
 
@@ -335,15 +335,15 @@ Task *NAME##_PUB(Worker *self, Task *top, Task *jfp )
 /** CALL related functions **/
 
 static inline __attribute__((__always_inline__))
-$RTYPE NAME##_WRK(Worker *, int _WOOL_(in_task)$WRK_FORMALS);
+$RTYPE NAME##_WRK(Worker *, int WOOL_(in_task)$WRK_FORMALS);
 
-$RTYPE NAME##_CALL(Worker *_WOOL_(self) $FUN_a_FORMALS)
+$RTYPE NAME##_CALL(Worker *WOOL_(self) $FUN_a_FORMALS)
 {
-  return NAME##_WRK( _WOOL_(self), 1 $CALL_a_ARGS );
+  return NAME##_WRK( WOOL_(self), 1 $CALL_a_ARGS );
 }
 
 static inline __attribute__((__always_inline__))
-$RTYPE NAME##_WRK(Worker *__self, int _WOOL_(in_task)$WRK_FORMALS)"\
+$RTYPE NAME##_WRK(Worker *__self, int WOOL_(in_task)$WRK_FORMALS)"\
 
 ) | awk '{printf "%-70s\\\n", $0 }'
 
