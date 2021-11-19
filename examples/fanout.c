@@ -55,8 +55,6 @@ TASK_3( int, fanout, int, leaf_size, int, width, int, depth )
 
 int main( int argc, char **argv )
 {
-  int i, d, w, n, m, s = 0;
-
   argc = wool_init( argc, argv );
 
   if( argc < 5 ) {
@@ -64,12 +62,13 @@ int main( int argc, char **argv )
     return 1;
   }
 
-  n  = atoi( argv[1] );
-  w  = atoi( argv[2] );
-  d  = atoi( argv[3] );
-  m  = atoi( argv[4] );
+  int n  = atoi( argv[1] );
+  int w  = atoi( argv[2] );
+  int d  = atoi( argv[3] );
+  int m  = atoi( argv[4] );
 
-  for( i=0; i<m; i++) {
+  int s = 0;
+  for( int i=0; i<m; i++) {
     s += CALL( fanout, n, w, d );
   }
 

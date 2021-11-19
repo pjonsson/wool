@@ -46,9 +46,8 @@ TASK_2( int, main, int, argc, char **, argv )
   int grainsize = atoi( argv[1] );
   int p_iters = atoi( argv[2] );
   int s_iters = atoi( argv[3] );
-  int i;
 
-  for( i=0; i<s_iters; i++ ) {
+  for( int i=0; i<s_iters; i++ ) {
     FOR( work, 0, p_iters, grainsize );
   }
 

@@ -49,18 +49,16 @@ VOID_TASK_2( tree, int, d, int, n )
 
 TASK_2( int, main, int, argc, char **, argv )
 {
-  int i, d, n, m;
-
   if( argc < 4 ) {
     fprintf( stderr, "Usage: stress [<wool opts>] <grain> <depth> <reps>\n" );
     return 1;
   }
 
-  n  = atoi( argv[1] );
-  d  = atoi( argv[2] );
-  m  = atoi( argv[3] );
+  int n  = atoi( argv[1] );
+  int d  = atoi( argv[2] );
+  int m  = atoi( argv[3] );
 
-  for( i=0; i<m; i++) {
+  for( int i=0; i<m; i++) {
     CALL( tree, d, n );
   }
   printf( "DONE\n" );

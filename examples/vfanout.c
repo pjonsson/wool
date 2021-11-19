@@ -45,29 +45,27 @@ VOID_TASK_2( fanout, int, leaf_size, long int *, res )
 static int work( int leaf_size, int width )
 {
   long int *arr = malloc( sizeof(long int) * width );
-  int i;
   long int sum = 0;
   
-  for( i = 0; i < width; i++ ) {
+  for( int i = 0; i < width; i++ ) {
     SPAWN( fanout, leaf_size, arr+i );
     loop(1000);
   }
   
-  for( i = 0; i < width; i++ ) {
+  for( int i = 0; i < width; i++ ) {
     SYNC( fanout );
   }
   
-  for( i = 0; i < width; i++ ) {
+  for( int i = 0; i < width; i++ ) {
     sum += arr[i];
   }
-  
+
+  free(arr);
   return sum;
 }
 
 int main( int argc, char **argv )
 {
-  int i, w, n, m, s = 0;
-
   argc = wool_init( argc, argv );
 
   if( argc < 4 ) {
@@ -75,11 +73,12 @@ int main( int argc, char **argv )
     return 1;
   }
 
-  n  = atoi( argv[1] );
-  w  = atoi( argv[2] );
-  m  = atoi( argv[3] );
+  int n  = atoi( argv[1] );
+  int w  = atoi( argv[2] );
+  int m  = atoi( argv[3] );
 
-  for( i=0; i<m; i++) {
+  int s = 0;
+  for( int i=0; i<m; i++) {
     s += work( n, w );
   }
 

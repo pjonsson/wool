@@ -52,18 +52,14 @@ LOOP_BODY_4( mm, LARGE_BODY/1, int, i, int, rows, double*, a, double*, b, double
 
 
 TASK_2(int, main, int, argc, char**, argv) {
-  int i,j,ok;
-  int rows;
-  int reps;
-
   /* Decode arguments */
 
   if(argc < 3) {
     fprintf(stderr, "Usage: %s [wool options] <matrix rows> <repetitions>\n", argv[0]);
     exit(1);
   }
-  rows = atoi(argv[1]);
-  reps = atoi(argv[2]);
+  int rows = atoi(argv[1]);
+  int reps = atoi(argv[2]);
 
 
   /* Allocate and initialize matrices */
@@ -72,8 +68,8 @@ TASK_2(int, main, int, argc, char**, argv) {
   double *b = malloc(rows*rows*sizeof(double));
   double *c = malloc(rows*rows*sizeof(double));
 
-  for( i=0; i<rows; i++ ) {
-    for( j=0; j<rows; j++ ) {
+  for( int i=0; i<rows; i++ ) {
+    for( int j=0; j<rows; j++ ) {
       a[i*rows+j] = 0.0;
       b[i*rows+j] = 0.0;
     }
@@ -84,17 +80,16 @@ TASK_2(int, main, int, argc, char**, argv) {
 
   /* Multiply matrices */
 
-  for( i=0; i<reps; i++ ) {
-    double *t;
+  for( int i=0; i<reps; i++ ) {
     FOR( mm, 0, rows, rows, a, b, c );
-    t = a; a = c; c = t;
+    double *t = a; a = c; c = t;
   }
 
   /* Check result */
 
-  ok = 1;
-  for( i=0; i<rows; i++ ) {
-    for( j=0; j<rows; j++ ) {
+  int ok = 1;
+  for( int i=0; i<rows; i++ ) {
+    for( int j=0; j<rows; j++ ) {
       if( i!=j && a[i*rows+j] != 0.0 ) {
         ok = 0;
       }
@@ -105,6 +100,9 @@ TASK_2(int, main, int, argc, char**, argv) {
   }
 
   printf("Ok: %d\n", ok);
+  free(a);
+  free(b);
+  free(c);
   return 0;
 
 }

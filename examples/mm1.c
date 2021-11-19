@@ -52,16 +52,13 @@ LOOP_BODY_4( mm, LARGE_BODY, int, i, int, rows, double*, a, double*, b, double*,
 
 
 TASK_2(int, main, int, argc, char**, argv) {
-  int i,j,ok;
-  int rows;
-
   /* Decode arguments */
 
   if(argc < 2) {
     fprintf(stderr, "Usage: %s [wool options] <matrix rows>\n", argv[0]);
     exit(1);
   }
-  rows = atoi(argv[1]);
+  int rows = atoi(argv[1]);
 
 
 
@@ -71,8 +68,8 @@ TASK_2(int, main, int, argc, char**, argv) {
   double *b = malloc(rows*rows*sizeof(double));
   double *c = malloc(rows*rows*sizeof(double));
 
-  for( i=0; i<rows; i++ ) {
-    for( j=0; j<rows; j++ ) {
+  for( int i=0; i<rows; i++ ) {
+    for( int j=0; j<rows; j++ ) {
       a[i*rows+j] = 0.0;
       b[i*rows+j] = 0.0;
     }
@@ -87,9 +84,9 @@ TASK_2(int, main, int, argc, char**, argv) {
 
   /* Check result */
 
-  ok = 1;
-  for( i=0; i<rows; i++ ) {
-    for( j=0; j<rows; j++ ) {
+  int ok = 1;
+  for( int i=0; i<rows; i++ ) {
+    for( int j=0; j<rows; j++ ) {
       if( i!=j && c[i*rows+j] != 0.0 ) {
         ok = 0;
       }
@@ -100,6 +97,9 @@ TASK_2(int, main, int, argc, char**, argv) {
   }
 
   printf("Ok: %d\n", ok);
+  free(a);
+  free(b);
+  free(c);
   return 0;
 
 }

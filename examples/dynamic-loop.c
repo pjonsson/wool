@@ -64,17 +64,14 @@ LOOP_BODY_1( tloop, LARGE_BODY, int, i, int*, delays )
 
 TASK_2( int, main, int, argc, char **, argv )
 {
-  int n = 100, r = 1000;
-  char* model;
-
   if( argc < 4 ) {
     fprintf( stderr, "Usage: dynamic-loop <model> <reps> <trip> <params...>\n" );
     exit(1);
   }
 
-  model = argv[1];
-  r = atoi( argv[2] );
-  n = atoi( argv[3] );
+  char *model = argv[1];
+  int r = atoi( argv[2] );
+  int n = atoi( argv[3] );
 
   int *delays = malloc( n * sizeof(int) );
 
@@ -88,5 +85,6 @@ TASK_2( int, main, int, argc, char **, argv )
     FOR( tloop, 0, n, delays );
   }
 
+  free(delays);
   return 0;
 }

@@ -39,18 +39,15 @@ TASK_1( int, pfib, int, n )
    if( n < 2 ) {
       return n;
    } else {
-      int m,k;
       SPAWN( pfib, n-1 );
-      k = CALL( pfib, n-2 );
-      m = SYNC( pfib );
+      int k = CALL( pfib, n-2 );
+      int m = SYNC( pfib );
       return m+k;
    }
 }
 
 int main( int argc, char ** argv )
 {
-   int n,m;
-
    argc = wool_init_options( argc, argv );
 
    if( argc < 2 ) {
@@ -58,11 +55,11 @@ int main( int argc, char ** argv )
       exit( 2 );
    }
 
-   n = atoi( argv[ 1 ] );
+   int n = atoi( argv[ 1 ] );
 
    wool_init_start();
 
-   m = CALL( pfib, n );
+   int m = CALL( pfib, n );
 
    printf( "%d\n", m );
 

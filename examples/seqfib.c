@@ -38,25 +38,22 @@ static int fib( int n )
    if( n < 2 ) {
       return n;
    } else {
-      int m,k;
-      k = fib( n-2 );
-      m = fib( n-1 );
+      int k = fib( n-2 );
+      int m = fib( n-1 );
       return m+k;
    }
 }
 
 int main( int argc, char **argv )
 {
-   int n,m;
-
    if( argc < 2 ) {
       fprintf( stderr, "Usage: seqfib <arg>\n" ),
       exit( 2 );
    }
 
-   n = atoi( argv[ 1 ] );
+   int n = atoi( argv[ 1 ] );
 
-   m = fib( n );
+   int m = fib( n );
 
    printf( "%d\n", m );
    return 0;

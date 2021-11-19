@@ -44,7 +44,6 @@ void printstack(int n)
 
 VOID_TASK_1(loop, int, n)
 {
-  int m;
   if( n == 0 ) return;
 
   SPAWN( loop, n-1 );

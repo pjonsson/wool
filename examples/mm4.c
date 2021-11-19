@@ -59,17 +59,14 @@ VOID_TASK_8( mul_block, double*, a, double*, b, double*, c, int, rows, int, bs, 
 }
 
 TASK_2(int, main, int, argc, char**, argv) {
-  int i,j,k,ok;
-  int rows, bs;
-
   /* Decode arguments */
 
   if(argc < 3) {
     fprintf(stderr, "Usage: %s [wool options] <matrix rows> <blocksize>\n", argv[0]);
     exit(1);
   }
-  rows = atoi(argv[1]);
-  bs = atoi(argv[2]);
+  int rows = atoi(argv[1]);
+  int bs = atoi(argv[2]);
 
   printf( "%d rows, blocksize %d\n", rows, bs );
 
@@ -81,8 +78,8 @@ TASK_2(int, main, int, argc, char**, argv) {
   double *b = malloc(rows*rows*sizeof(double));
   double *c = malloc(rows*rows*sizeof(double));
 
-  for( i=0; i<rows; i++ ) {
-    for( j=0; j<rows; j++ ) {
+  for( int i=0; i<rows; i++ ) {
+    for( int j=0; j<rows; j++ ) {
       a[i*rows+j] = 0.0;
       b[i*rows+j] = 0.0;
     }
@@ -93,9 +90,9 @@ TASK_2(int, main, int, argc, char**, argv) {
 
   /* Multiply matrices */
 
-  for( i=0; i<rows; i+=bs ) {
-    for( j=0; j<rows; j+=bs ) {
-      for( k=0; k<rows; k+=bs ) {
+  for( int i=0; i<rows; i+=bs ) {
+    for( int j=0; j<rows; j+=bs ) {
+      for( int k=0; k<rows; k+=bs ) {
         CALL(mul_block, a, b, c, rows, bs, i, j, k );
       }
     }
@@ -104,9 +101,9 @@ TASK_2(int, main, int, argc, char**, argv) {
 
   /* Check result */
 
-  ok = 1;
-  for( i=0; i<rows; i++ ) {
-    for( j=0; j<rows; j++ ) {
+  int ok = 1;
+  for( int i=0; i<rows; i++ ) {
+    for( int j=0; j<rows; j++ ) {
       if( i!=j && c[i*rows+j] != 0.0 ) {
         ok = 0;
       }
@@ -117,6 +114,9 @@ TASK_2(int, main, int, argc, char**, argv) {
   }
 
   printf("Ok: %d\n", ok);
+  free(a);
+  free(b);
+  free(c);
   return 0;
 
 }

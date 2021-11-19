@@ -57,19 +57,18 @@ TASK_3( int, tree, int, d, int, s, int, n )
 
 TASK_2( int, main, int, argc, char **, argv )
 {
-  int i, d, n, m, s, r = 0;
-
   if( argc < 5 ) {
     fprintf( stderr, "Usage: stress [<wool opts>] <grain> <depth> <skew> <reps>\n" );
     return 1;
   }
 
-  n  = atoi( argv[1] );
-  d  = atoi( argv[2] );
-  s  = atoi( argv[3] );
-  m  = atoi( argv[4] );
+  int n  = atoi( argv[1] );
+  int d  = atoi( argv[2] );
+  int s  = atoi( argv[3] );
+  int m  = atoi( argv[4] );
 
-  for( i=0; i<m; i++) {
+  int r = 0;
+  for( int i=0; i<m; i++) {
     r = CALL( tree, d, s, n );
   }
   printf( "DONE, %d leaves per rep\n", r );
