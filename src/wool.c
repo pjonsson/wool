@@ -923,21 +923,6 @@ static int block_of_idx( Worker *self, unsigned long t )
 
 #endif
 
-// Currently unused
-#if 0
-static int block_of_ptr( Worker *w, Task *t )
-{
-  int i;
-
-  for( i = 0; i < WOOL_pool_blocks; i++ ) {
-    if( (unsigned long) (t - w->pr.block_base[i]) < block_size(i) ) {
-      return i;
-    }
-  }
-  return -1;
-}
-#endif
-
 inline TILE_INLINE unsigned long ptr2idx_curr( Worker *w, Task *t )
 {
   Task *base = w->pr.curr_block_base;
@@ -946,16 +931,6 @@ inline TILE_INLINE unsigned long ptr2idx_curr( Worker *w, Task *t )
   assert( t < base + block_size(w->pr.t_idx) );
   return w->pr.curr_block_fidx + t - base;
 }
-
-// Currently unused
-#if 0
-static Task *idx2ptr_curr( Worker *w, unsigned long t )
-{
-  Task **blocks = &(w->pr.block_base[0]);
-  int    idx = w->pr.t_idx;
-  return blocks[idx] + t - start_idx_of_block(w, idx);
-}
-#endif
 
 // Compute the size of the public tasks in a block, possibly except the last one
 // If this value is n, then
@@ -1530,15 +1505,6 @@ static Task *push_task( Worker *self, Task *p )
 #if WOOL_JOIN_STACK
   } else {
     // The join task is in the join stack, which was not popped in rts_sync, so we do nothing
-   #if 0
-    WOOL_(StolenTask) *sp = (WOOL_(StolenTask) *) p; // Type change, for convenience
-    self->pr.join_stack_top_idx++;
-    assert( sp == self->pr.join_stack_free );
-    // Move *sp from the free list to the join stack
-    self->pr.join_stack_free = sp->info.next;
-    sp->info.next = self->pr.join_stack_top;
-    self->pr.join_stack_top = sp;
-   #endif
 #endif
   }
   return self->pr.pr_top;
@@ -1553,16 +1519,6 @@ static void pop_task( Worker *self, Task *p )
 #if WOOL_JOIN_STACK
   if( self->pr.block_base[ block_of_idx( self, self->pr.pool_base_idx ) ] == self->pr.pr_top ) {
     // We did not push to the join stack, so we do not pop now
-   #if 0
-    WOOL_(StolenTask) *sp = (WOOL_(StolenTask) *) p; // Type change, for convenience
-    self->pr.join_stack_top_idx--;
-    // Leap frogging ensures that *sp can not have been compacted away
-    assert( sp == self->pr.join_stack_top );
-    // We move *sp from the join stack to the free list
-    self->pr.join_stack_top = sp->info.next;
-    sp->info.next = self->pr.join_stack_free;
-    self->pr.join_stack_free = sp;
-   #endif
    return;
   }
 #endif
@@ -1866,9 +1822,6 @@ void WOOL_(rts_sync)( Worker *self, volatile Task *t, grab_res_t r )
       logEvent( self, 3 );
       // logEvent( self, thief_idx+20 );
       time_event( self, 3 );
-      #if 0 // WOOL_STEAL_SET /* || WOOL_STEAL_DKS */
-        self->pu.is_thief = 1;
-      #endif
 
       do {
         int steal_outcome = SO_NO_WORK;
@@ -3496,14 +3449,6 @@ void wool_fini( void )
     }
   }
 
-#endif
-
-#if 0
-  for( i = 0; i < n_workers; i++ ) {
-    Worker *w = workers[i];
-    fprintf( stderr, "", w->pu.dq_bot - w->pr.dq_base );
-    // fprintf( stderr, "%ld\n", w->pu.dq_bot - w->pr.dq_base );
-  }
 #endif
 
   if( log_file_name != NULL ) {
